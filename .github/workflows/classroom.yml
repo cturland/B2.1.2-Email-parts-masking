@@ -1,1 +1,239 @@
+name: Autograding Tests – Email parts & masking
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 1) Example-like case with dot in local
+    - name: "Test 1: alex.mason@school.ch"
+      id: t1
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T1
+        command: python3 solution.py
+        input: |
+          alex.mason@school.ch
+        expected-output: |
+          alex.mason
+          school.ch
+          a*******n@school.ch
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 2) Local length = 1 (unchanged)
+    - name: "Test 2: a@site.com"
+      id: t2
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T2
+        command: python3 solution.py
+        input: |
+          a@site.com
+        expected-output: |
+          a
+          site.com
+          a@site.com
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 3) Local length = 2 (unchanged)
+    - name: "Test 3: ab@site.com"
+      id: t3
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T3
+        command: python3 solution.py
+        input: |
+          ab@site.com
+        expected-output: |
+          ab
+          site.com
+          ab@site.com
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 4) Local length = 3 (single star)
+    - name: "Test 4: bob@mail.com"
+      id: t4
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T4
+        command: python3 solution.py
+        input: |
+          bob@mail.com
+        expected-output: |
+          bob
+          mail.com
+          b*b@mail.com
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 5) Mixed case preserved
+    - name: "Test 5: JoHn@Example.org"
+      id: t5
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T5
+        command: python3 solution.py
+        input: |
+          JoHn@Example.org
+        expected-output: |
+          JoHn
+          Example.org
+          J**n@Example.org
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 6) Underscore in local
+    - name: "Test 6: first_last@corp.co.uk"
+      id: t6
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T6
+        command: python3 solution.py
+        input: |
+          first_last@corp.co.uk
+        expected-output: |
+          first_last
+          corp.co.uk
+          f*******t@corp.co.uk
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 7) Hyphen in local
+    - name: "Test 7: dev-ops@company.io"
+      id: t7
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T7
+        command: python3 solution.py
+        input: |
+          dev-ops@company.io
+        expected-output: |
+          dev-ops
+          company.io
+          d*****s@company.io
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 8) Plus-tag in local (treat as part of local)
+    - name: "Test 8: user+tag@service.net"
+      id: t8
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T8
+        command: python3 solution.py
+        input: |
+          user+tag@service.net
+        expected-output: |
+          user+tag
+          service.net
+          u*****g@service.net
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 9) Digits in local
+    - name: "Test 9: a1b2c3@nums.ch"
+      id: t9
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T9
+        command: python3 solution.py
+        input: |
+          a1b2c3@nums.ch
+        expected-output: |
+          a1b2c3
+          nums.ch
+          a****3@nums.ch
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 10) Subdomains in domain (unchanged)
+    - name: "Test 10: sam@dept.school.edu"
+      id: t10
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T10
+        command: python3 solution.py
+        input: |
+          sam@dept.school.edu
+        expected-output: |
+          sam
+          dept.school.edu
+          s*m@dept.school.edu
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 11) Long local
+    - name: "Test 11: superlonglocalname@host.ch"
+      id: t11
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T11
+        command: python3 solution.py
+        input: |
+          superlonglocalname@host.ch
+        expected-output: |
+          superlonglocalname
+          host.ch
+          s*****************e@host.ch
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    # 12) Local with dot at end (still just characters)
+    - name: "Test 12: x.@x.ch"
+      id: t12
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: EmailMask T12
+        command: python3 solution.py
+        input: |
+          x.@x.ch
+        expected-output: |
+          x.
+          x.ch
+          x.@x.ch
+        comparison-method: exact
+        timeout: 2
+        max-score: 1
+
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        T1_RESULTS: ${{ steps.t1.outputs.result }}
+        T2_RESULTS: ${{ steps.t2.outputs.result }}
+        T3_RESULTS: ${{ steps.t3.outputs.result }}
+        T4_RESULTS: ${{ steps.t4.outputs.result }}
+        T5_RESULTS: ${{ steps.t5.outputs.result }}
+        T6_RESULTS: ${{ steps.t6.outputs.result }}
+        T7_RESULTS: ${{ steps.t7.outputs.result }}
+        T8_RESULTS: ${{ steps.t8.outputs.result }}
+        T9_RESULTS: ${{ steps.t9.outputs.result }}
+        T10_RESULTS: ${{ steps.t10.outputs.result }}
+        T11_RESULTS: ${{ steps.t11.outputs.result }}
+        T12_RESULTS: ${{ steps.t12.outputs.result }}
+      with:
+        runners: t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12
 
